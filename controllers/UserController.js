@@ -104,48 +104,33 @@ export const login = async (req, res) => {
 // };
 
 export const getTelegramId = async (req, res) => {
-  const initData = req.body.initData;
-  const botToken = '7661158481:AAFc3G5gOameDLtudD8X_tX6IEsyoXKBlOc'; // Укажите токен вашего бота
-
-  if (!initData || !botToken) {
-    return res.status(400).json({ error: 'initData или токен не предоставлены' });
-  }
+  const { telegramId } = req.body;
 
   try {
-    const urlParams = new URLSearchParams(initData);
-    const signature = urlParams.get('signature');
-    urlParams.delete('signature'); 
-
-    const userParam = urlParams.get('user');
-    if (!userParam) {
-      return res.status(400).json({ error: 'Параметр user отсутствует!' });
-    }
-
-    const user = JSON.parse(userParam);
-    let existingUser = await User.findOne({ telegramId: user.id });
+    let existingUser = await User.findOne({ telegramId });
 
     if (existingUser) {
       return res.json({ status: 'Пользователь с таким Telegram ID уже существует.', user: existingUser });
     }
 
-    // Создаем нового пользователя, если не найден
+    // Создаем нового пользователя
     const newUser = new User({
-      telegramId: user.id
+      telegramId,
     });
 
     await newUser.save();
 
     return res.json({ 
       status: 'Новый пользователь создан.', 
-      user: newUser, 
-      telegramId: newUser.telegramId 
+      user: newUser 
     });
 
   } catch (error) {
     console.error('Ошибка при обработке данных:', error);
-    return res.status(500).json({ error: 'Ошибка при обработке initData.' });
+    return res.status(500).json({ error: 'Ошибка при обработке Telegram ID.' });
   }
 };
+
 
 
 export const getSubscribe = async (req, res) => {
